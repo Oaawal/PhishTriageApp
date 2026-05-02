@@ -3,9 +3,30 @@ import 'package:phishtriage_app/lookup_screen.dart';
 import 'package:phishtriage_app/report_screen.dart';
 import 'package:phishtriage_app/alerts_screen.dart';
 import 'package:phishtriage_app/message_scanner_screen.dart';
+import 'recent_numbers.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  List<String> _recentNumbers = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRecent();
+  }
+
+  Future<void> _loadRecent() async {
+    final recent = await RecentNumbers.getRecent();
+    setState(() {
+      _recentNumbers = recent;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +70,7 @@ class HomeScreen extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          "Nigeria’s Scam Shield",
+                          "Nigeria's Scam Shield",
                           style: TextStyle(
                             fontSize: 13,
                             color: Colors.grey,
@@ -120,13 +141,13 @@ class HomeScreen extends StatelessWidget {
                     MaterialPageRoute(
                       builder: (context) => const LookupScreen(),
                     ),
-                  );
+                  ).then((_) => _loadRecent());
                 },
               ),
 
               const SizedBox(height: 14),
 
-              /// SCAN MESSAGE (FIXED)
+              /// SCAN MESSAGE
               _ActionCard(
                 icon: Icons.security,
                 title: "Scan Message",
@@ -136,8 +157,7 @@ class HomeScreen extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) =>
-                          const MessageScannerScreen(),
+                      builder: (context) => const MessageScannerScreen(),
                     ),
                   );
                 },
@@ -221,6 +241,81 @@ class HomeScreen extends StatelessWidget {
                   ],
                 ),
               ),
+
+              /// RECENTLY CHECKED
+              if (_recentNumbers.isNotEmpty) ...[
+                const SizedBox(height: 28),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      "Recently Checked",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () async {
+                        await RecentNumbers.clearRecent();
+                        _loadRecent();
+                      },
+                      child: const Text(
+                        "Clear",
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                ...(_recentNumbers.map(
+                  (number) => GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => LookupScreen(
+                            prefilledNumber: number,
+                          ),
+                        ),
+                      ).then((_) => _loadRecent());
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 10),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 14),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.04),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.history,
+                              color: Color(0xFF008751), size: 20),
+                          const SizedBox(width: 12),
+                          Text(
+                            number,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const Spacer(),
+                          const Icon(Icons.chevron_right,
+                              color: Colors.grey, size: 20),
+                        ],
+                      ),
+                    ),
+                  ),
+                )),
+              ],
 
               const SizedBox(height: 28),
 

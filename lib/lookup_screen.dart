@@ -2,9 +2,11 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'report_screen.dart';
+import 'recent_numbers.dart';
 
 class LookupScreen extends StatefulWidget {
-  const LookupScreen({super.key});
+  final String? prefilledNumber;
+  const LookupScreen({super.key, this.prefilledNumber});
 
   @override
   State<LookupScreen> createState() => _LookupScreenState();
@@ -16,6 +18,14 @@ class _LookupScreenState extends State<LookupScreen> {
   Map<String, dynamic>? result;
   bool isLoading = false;
   String? errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.prefilledNumber != null) {
+      _numberController.text = widget.prefilledNumber!;
+    }
+  }
 
   Future<void> lookupNumber() async {
     final number = _numberController.text.trim();
@@ -45,6 +55,7 @@ class _LookupScreenState extends State<LookupScreen> {
         setState(() {
           result = jsonDecode(response.body);
         });
+        await RecentNumbers.addNumber(_numberController.text.trim());
       } else {
         setState(() {
           errorMessage = 'Failed to fetch result';
@@ -100,8 +111,7 @@ class _LookupScreenState extends State<LookupScreen> {
                 const Expanded(
                   child: Text(
                     'No scam reports found for this number',
-                    style:
-                        TextStyle(fontSize: 15, color: Color(0xFF1A1A1A)),
+                    style: TextStyle(fontSize: 15, color: Color(0xFF1A1A1A)),
                   ),
                 ),
               ],
@@ -157,7 +167,6 @@ class _LookupScreenState extends State<LookupScreen> {
       ),
       child: Column(
         children: [
-          // Risk banner
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 16),
@@ -188,8 +197,6 @@ class _LookupScreenState extends State<LookupScreen> {
               ],
             ),
           ),
-
-          // Details
           Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
@@ -233,8 +240,6 @@ class _LookupScreenState extends State<LookupScreen> {
                   icon: Icons.label,
                 ),
                 const SizedBox(height: 20),
-
-                // Report button
                 SizedBox(
                   width: double.infinity,
                   height: 44,
@@ -249,8 +254,7 @@ class _LookupScreenState extends State<LookupScreen> {
                         ),
                       );
                     },
-                    icon: const Icon(Icons.report,
-                        color: Color(0xFFD62828)),
+                    icon: const Icon(Icons.report, color: Color(0xFFD62828)),
                     label: const Text(
                       'Report This Number',
                       style: TextStyle(color: Color(0xFFD62828)),

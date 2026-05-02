@@ -126,10 +126,13 @@ Prepared by PhishTriage.
     final phone = "2347038336596";
     final message =
         Uri.encodeComponent("Hello, I need help with this:\n\n$report");
-    final url = Uri.parse("https://wa.me/$phone?text=$message");
+    final url = Uri.parse("whatsapp://send?phone=$phone&text=$message");
 
     if (await canLaunchUrl(url)) {
       await launchUrl(url, mode: LaunchMode.externalApplication);
+    } else {
+      final webUrl = Uri.parse("https://wa.me/$phone?text=$message");
+      await launchUrl(webUrl, mode: LaunchMode.externalApplication);
     }
   }
 
@@ -216,6 +219,17 @@ Prepared by PhishTriage.
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(14),
                 ),
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.content_paste,
+                      color: Color(0xFF008751)),
+                  tooltip: 'Paste from clipboard',
+                  onPressed: () async {
+                    final data = await Clipboard.getData('text/plain');
+                    if (data != null && data.text != null) {
+                      _messageController.text = data.text!;
+                    }
+                  },
+                ),
               ),
             ),
 
@@ -285,7 +299,8 @@ Prepared by PhishTriage.
                                 usedAiScan
                                     ? "Advanced AI Analysis"
                                     : "Basic Risk Analysis",
-                                style: const TextStyle(color: Colors.grey),
+                                style:
+                                    const TextStyle(color: Colors.grey),
                               ),
                             ],
                           ),
@@ -358,8 +373,31 @@ Prepared by PhishTriage.
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.black,
                         foregroundColor: Colors.white,
+                        minimumSize: const Size(double.infinity, 48),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                       child: const Text("📄 Generate Report"),
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        final report = generateReportSummary();
+                        Share.share(report);
+                      },
+                      icon: const Icon(Icons.share),
+                      label: const Text("Share Result"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF1B4965),
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size(double.infinity, 48),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
                     ),
 
                     const SizedBox(height: 10),
@@ -372,6 +410,10 @@ Prepared by PhishTriage.
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF008751),
                         foregroundColor: Colors.white,
+                        minimumSize: const Size(double.infinity, 48),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                       child: const Text("📲 Get Help via WhatsApp"),
                     ),
