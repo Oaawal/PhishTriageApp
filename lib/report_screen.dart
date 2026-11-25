@@ -1,6 +1,5 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'api_client.dart';
 
 class ReportScreen extends StatefulWidget {
   final String? prefilledNumber;
@@ -36,6 +35,9 @@ void initState() {
     'investment scam',
     'romance scam',
     'job scam',
+    'wrong transfer',
+    'family impersonation',
+    'online shopping',
     'other',
   ];
 
@@ -45,6 +47,11 @@ void initState() {
     'whatsapp',
     'telegram',
     'email',
+    'instagram',
+    'facebook',
+    'tiktok',
+    'x',
+    'website',
     'other',
   ];
 
@@ -66,34 +73,23 @@ void initState() {
     });
 
     try {
-      final url = Uri.parse(
-        'https://phishtriageplatform.onrender.com/report'
-        '?number=$number'
-        '&reason=${Uri.encodeComponent(selectedReason)}'
-        '&channel=${Uri.encodeComponent(selectedChannel)}'
-        '&message=${Uri.encodeComponent(_messageController.text.trim())}',
-      );
-
-      final response = await http.post(url);
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        setState(() {
-          successMessage = data['message'] ?? 'Report submitted successfully';
-          _numberController.clear();
-          _messageController.clear();
-          selectedReason = 'otp scam';
-          selectedChannel = 'sms';
-        });
-      } else {
-        final data = jsonDecode(response.body);
-        setState(() {
-          errorMessage = data['detail'] ?? 'Failed to submit report';
-        });
-      }
-    } catch (e) {
+      final message = _messageController.text.trim();
+      final data = await ApiClient.post('/report', query: {
+        'number': number,
+        'reason': selectedReason,
+        'channel': selectedChannel,
+        if (message.isNotEmpty) 'message': message,
+      });
       setState(() {
-        errorMessage = 'Error connecting to server';
+        successMessage = (data as Map)['message'] ?? 'Report submitted successfully';
+        _numberController.clear();
+        _messageController.clear();
+        selectedReason = 'otp scam';
+        selectedChannel = 'sms';
+      });
+    } on ApiException catch (e) {
+      setState(() {
+        errorMessage = e.message;
       });
     } finally {
       setState(() {

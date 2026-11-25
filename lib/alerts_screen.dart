@@ -1,6 +1,5 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'api_client.dart';
 
 class AlertsScreen extends StatefulWidget {
   const AlertsScreen({super.key});
@@ -27,25 +26,13 @@ class _AlertsScreenState extends State<AlertsScreen> {
     });
 
     try {
-      final url = Uri.parse(
-        'https://phishtriageplatform.onrender.com/alerts',
-      );
-
-      final response = await http.get(url);
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        setState(() {
-          alerts = data['alerts'] ?? [];
-        });
-      } else {
-        setState(() {
-          errorMessage = 'Failed to load alerts';
-        });
-      }
-    } catch (e) {
+      final data = await ApiClient.get('/alerts');
       setState(() {
-        errorMessage = 'Error connecting to server';
+        alerts = (data as Map)['alerts'] ?? [];
+      });
+    } on ApiException catch (e) {
+      setState(() {
+        errorMessage = e.message;
       });
     } finally {
       setState(() {
@@ -161,7 +148,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
                             borderRadius: BorderRadius.circular(16),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.06),
+                                color: Colors.black.withValues(alpha: 0.06),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
                               ),
@@ -174,7 +161,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 16, vertical: 10),
                                 decoration: BoxDecoration(
-                                  color: color.withOpacity(0.1),
+                                  color: color.withValues(alpha: 0.1),
                                   borderRadius: const BorderRadius.vertical(
                                     top: Radius.circular(16),
                                   ),

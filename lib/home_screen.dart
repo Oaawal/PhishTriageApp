@@ -3,7 +3,11 @@ import 'package:phishtriage_app/lookup_screen.dart';
 import 'package:phishtriage_app/report_screen.dart';
 import 'package:phishtriage_app/alerts_screen.dart';
 import 'package:phishtriage_app/message_scanner_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'account_check_screen.dart';
+import 'config.dart';
 import 'recent_numbers.dart';
+import 'recovery_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -147,6 +151,24 @@ class _HomeScreenState extends State<HomeScreen> {
 
               const SizedBox(height: 14),
 
+              /// CHECK ACCOUNT
+              _ActionCard(
+                icon: Icons.account_balance,
+                title: "Check a Bank Account",
+                subtitle: "See if an account was reported before you pay",
+                color: const Color(0xFF6A4C93),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AccountCheckScreen(),
+                    ),
+                  );
+                },
+              ),
+
+              const SizedBox(height: 14),
+
               /// SCAN MESSAGE
               _ActionCard(
                 icon: Icons.security,
@@ -199,6 +221,41 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
               ),
 
+              const SizedBox(height: 14),
+
+              /// RECOVERY
+              _ActionCard(
+                icon: Icons.support,
+                title: "I've Been Scammed",
+                subtitle: "Step-by-step help and a complaint letter for your bank",
+                color: const Color(0xFFD62828),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const RecoveryScreen(),
+                    ),
+                  );
+                },
+              ),
+
+              /// WHATSAPP BOT
+              if (AppConfig.botWhatsApp.isNotEmpty) ...[
+                const SizedBox(height: 14),
+                _ActionCard(
+                  icon: Icons.chat,
+                  title: "Check on WhatsApp",
+                  subtitle: "Forward suspicious messages to our WhatsApp bot",
+                  color: const Color(0xFF25D366),
+                  onTap: () {
+                    launchUrl(
+                      Uri.parse('https://wa.me/${AppConfig.botWhatsApp}?text=hi'),
+                      mode: LaunchMode.externalApplication,
+                    );
+                  },
+                ),
+              ],
+
               const SizedBox(height: 28),
 
               /// SAFETY TIPS
@@ -210,7 +267,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   borderRadius: BorderRadius.circular(18),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withValues(alpha: 0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -238,6 +295,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Text("• Do not click unknown or suspicious links"),
                     Text("• Verify messages from banks directly"),
                     Text("• Report suspicious numbers immediately"),
+                    Text("• Before paying a vendor, check the account here first"),
                   ],
                 ),
               ),
@@ -289,7 +347,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.04),
+                            color: Colors.black.withValues(alpha: 0.04),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
@@ -367,7 +425,7 @@ class _ActionCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(18),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -379,7 +437,7 @@ class _ActionCard extends StatelessWidget {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: color.withOpacity(0.12),
+                color: color.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Icon(icon, color: color, size: 26),

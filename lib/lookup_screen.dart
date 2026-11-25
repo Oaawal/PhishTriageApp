@@ -1,6 +1,6 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'api_client.dart';
+import 'dispute_screen.dart';
 import 'report_screen.dart';
 import 'recent_numbers.dart';
 
@@ -45,25 +45,14 @@ class _LookupScreenState extends State<LookupScreen> {
     });
 
     try {
-      final url = Uri.parse(
-        'https://phishtriageplatform.onrender.com/lookup?number=$number',
-      );
-
-      final response = await http.get(url);
-
-      if (response.statusCode == 200) {
-        setState(() {
-          result = jsonDecode(response.body);
-        });
-        await RecentNumbers.addNumber(_numberController.text.trim());
-      } else {
-        setState(() {
-          errorMessage = 'Failed to fetch result';
-        });
-      }
-    } catch (e) {
+      final data = await ApiClient.get('/lookup', query: {'number': number});
       setState(() {
-        errorMessage = 'Error connecting to server';
+        result = Map<String, dynamic>.from(data as Map);
+      });
+      await RecentNumbers.addNumber(number);
+    } on ApiException catch (e) {
+      setState(() {
+        errorMessage = e.message;
       });
     } finally {
       setState(() {
@@ -95,7 +84,7 @@ class _LookupScreenState extends State<LookupScreen> {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.06),
+              color: Colors.black.withValues(alpha: 0.06),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -108,10 +97,10 @@ class _LookupScreenState extends State<LookupScreen> {
                 const Icon(Icons.check_circle_outline,
                     color: Color(0xFF008751), size: 28),
                 const SizedBox(width: 12),
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'No scam reports found for this number',
-                    style: TextStyle(fontSize: 15, color: Color(0xFF1A1A1A)),
+                    result!['status_note'] ?? 'No scam reports found for this number',
+                    style: const TextStyle(fontSize: 15, color: Color(0xFF1A1A1A)),
                   ),
                 ),
               ],
@@ -159,7 +148,7 @@ class _LookupScreenState extends State<LookupScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -190,7 +179,7 @@ class _LookupScreenState extends State<LookupScreen> {
                 Text(
                   'Risk Level',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.8),
+                    color: Colors.white.withValues(alpha: 0.8),
                     fontSize: 13,
                   ),
                 ),
@@ -239,6 +228,13 @@ class _LookupScreenState extends State<LookupScreen> {
                   value: result!['current_label'] ?? 'Unknown',
                   icon: Icons.label,
                 ),
+                if (result!['status_note'] != null) ...[
+                  const SizedBox(height: 14),
+                  Text(
+                    result!['status_note'],
+                    style: TextStyle(fontSize: 13, color: Colors.grey[700], height: 1.4),
+                  ),
+                ],
                 const SizedBox(height: 20),
                 SizedBox(
                   width: double.infinity,
@@ -266,6 +262,20 @@ class _LookupScreenState extends State<LookupScreen> {
                       ),
                     ),
                   ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => DisputeScreen(
+                          targetType: 'number',
+                          target: result!['number'] ?? _numberController.text.trim(),
+                        ),
+                      ),
+                    );
+                  },
+                  child: const Text('This is my number: request a review'),
                 ),
               ],
             ),

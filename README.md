@@ -1,46 +1,55 @@
 # PhishTriage App
 
-PhishTriage is a mobile scam detection and fraud intelligence tool built for Nigerian users.
+Free scam checker for Nigerians, by AWAL Global Consults. Flutter app for
+Android and iOS, backed by the PhishTriage Platform API.
 
-## 🚨 Problem
+## Features
 
-Millions of users receive scam messages via SMS, WhatsApp, and phone calls. Most people cannot easily verify if a message is legitimate before taking action.
+- **Scan a message**: paste any SMS, WhatsApp message, email or link (English or Pidgin). Optional AI deep check.
+- **Check a phone number**: has it been reported by other users?
+- **Check a bank account**: see if an account was reported before you pay a vendor or "agent".
+- **Report** scam numbers and accounts (moderated before they appear).
+- **I've been scammed**: step-by-step recovery plans and a complaint letter for your bank or the police.
+- **Alerts**: numbers with many recent reports.
+- **Right of reply**: owners of a listed number or account can request a review.
 
-## 🛠️ Solution
+The app sends an anonymous install ID (`X-Device-Id`) so the server can rate-limit
+and de-duplicate reports. It does not collect names or contacts.
 
-PhishTriage allows users to:
+## Configuration
 
-- Scan suspicious messages for scam indicators
-- Detect risky keywords (OTP, BVN, PIN, etc.)
-- Identify phishing links
-- Assign a risk level (Low, Medium, High)
-- Generate a structured fraud report
-- Get recommended next actions
+All settings are passed at build time with `--dart-define`:
 
-## ⚙️ How it Works
+| Key | Default | Meaning |
+|---|---|---|
+| `API_BASE_URL` | `https://phishtriageplatform.onrender.com` | PhishTriage Platform API |
+| `BOT_WHATSAPP` | empty (card hidden) | WhatsApp bot number, digits only, e.g. `2348000000000` |
+| `HELP_WHATSAPP` | AWAL help line | Number for human help |
 
-1. User pastes a message
-2. System analyzes keywords, links, and patterns
-3. Risk score is calculated
-4. Result is displayed with reasoning
-5. User can generate a report or seek help
+## Run
 
-## 📱 Features
+```bash
+cd PhishTriageApp
+flutter pub get
+flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000   # Android emulator -> local API
+```
 
-- Message scanner (core feature)
-- Risk detection engine
-- Report generator
-- Fraud guidance system
-- Clean mobile UI (Flutter)
+## Test
 
-## 🔮 Future Plans
+```bash
+flutter analyze
+flutter test
+```
 
-- Phone number scam database
-- Real-time alerts
-- Business verification system (CAC integration)
-- AI-powered phishing detection API
+## Release (Android)
 
-## 👤 Built by
+```bash
+flutter build appbundle --release \
+  --dart-define=API_BASE_URL=https://<your-api-host> \
+  --dart-define=BOT_WHATSAPP=<bot number>
+```
 
-Awal Global Consults  
-Legal + Business + Cybersecurity Solutions
+The application ID is `com.awalglobal.phishtriage`. It cannot be changed after
+the first Play Store upload. Before release, set up an upload signing key
+(see Flutter's "Build and release an Android app" guide) and publish a privacy
+policy URL (draft in `PhishTriagePlatform/docs/PRIVACY_POLICY_DRAFT.md`).
