@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'account_check_screen.dart';
 import 'api_client.dart';
 import 'config.dart';
+import 'feedback_card.dart';
 import 'lookup_screen.dart';
 import 'recovery_screen.dart';
 
@@ -228,6 +229,23 @@ Checked with PhishTriage.''';
             ),
             child: Text('${_result?['category']}', style: TextStyle(fontWeight: FontWeight.bold, color: color)),
           ),
+          if ((((_result?['link_check'] as Map?)?['dangerous_links']) ?? 0) > 0)
+            Container(
+              margin: const EdgeInsets.only(top: 14),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFD62828).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Row(children: [
+                Icon(Icons.gpp_bad, color: Color(0xFFD62828)),
+                SizedBox(width: 10),
+                Expanded(
+                  child: Text('Google Safe Browsing lists a link in this message as dangerous. Do not open it.',
+                      style: TextStyle(fontWeight: FontWeight.w600)),
+                ),
+              ]),
+            ),
           _section(_risk == 'Low' ? 'Result' : 'Why it was flagged', _list('reasons')),
           _section('What to do next', _list('advice')),
           if (accounts.isNotEmpty || phones.isNotEmpty) ...[
@@ -254,6 +272,13 @@ Checked with PhishTriage.''';
             ),
           ],
           const SizedBox(height: 8),
+          if (_result?['scan_id'] != null && _result?['feedback_enabled'] != false)
+            FeedbackCard(
+              key: ValueKey(_result!['scan_id']),
+              scanId: '${_result!['scan_id']}',
+              message: _messageController.text.trim(),
+              flagged: _risk != 'Low',
+            ),
           _button('Share result', Icons.share, const Color(0xFF1B4965), () => Share.share(_reportText())),
           _button('View / copy report', Icons.description, Colors.black, _showReport),
           if (_risk != 'Low')

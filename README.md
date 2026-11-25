@@ -5,7 +5,8 @@ Android and iOS, backed by the PhishTriage Platform API.
 
 ## Features
 
-- **Scan a message**: paste any SMS, WhatsApp message, email or link (English or Pidgin).
+- **Scan a message**: paste any SMS, WhatsApp message, email or link (English or Pidgin). Links are checked with Google Safe Browsing.
+- **"Was this right?"** feedback after each scan, with optional anonymous sharing to help train PhishTriage's own model.
 - **Check a phone number**: has it been reported by other users?
 - **Check a bank account**: see if an account was reported before you pay a vendor or "agent".
 - **Report** scam numbers and accounts (moderated before they appear).

@@ -282,6 +282,7 @@ class _AccountReportSheetState extends State<_AccountReportSheet> {
   late String _bank = widget.bank;
   String _reason = 'online shopping';
   String _channel = 'whatsapp';
+  bool _share = false;
   bool _sending = false;
   String? _error;
 
@@ -307,6 +308,7 @@ class _AccountReportSheetState extends State<_AccountReportSheet> {
         'channel': _channel,
         'amount_lost': double.tryParse(_amount.text.replaceAll(RegExp(r'[^0-9.]'), '')),
         'message': _message.text.trim().isEmpty ? null : _message.text.trim(),
+        'share_for_training': _share && _message.text.trim().isNotEmpty,
       });
       if (!mounted) return;
       Navigator.pop(context);
@@ -369,6 +371,13 @@ class _AccountReportSheetState extends State<_AccountReportSheet> {
                 decoration: _dec('Amount lost in naira (optional)')),
             const SizedBox(height: 10),
             TextField(controller: _message, maxLines: 3, decoration: _dec('Short description (optional)')),
+            CheckboxListTile(
+              contentPadding: EdgeInsets.zero,
+              controlAffinity: ListTileControlAffinity.leading,
+              value: _share,
+              onChanged: (v) => setState(() => _share = v ?? false),
+              title: const Text('Allow anonymous use of the description to improve scam detection'),
+            ),
             if (_error != null)
               Padding(
                 padding: const EdgeInsets.only(top: 10),

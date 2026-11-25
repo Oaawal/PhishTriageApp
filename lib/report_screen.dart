@@ -23,6 +23,7 @@ void initState() {
 
   String selectedReason = 'otp scam';
   String selectedChannel = 'sms';
+  bool shareForTraining = false;
   bool isLoading = false;
   String? errorMessage;
   String? successMessage;
@@ -79,6 +80,7 @@ void initState() {
         'reason': selectedReason,
         'channel': selectedChannel,
         if (message.isNotEmpty) 'message': message,
+        if (message.isNotEmpty && shareForTraining) 'share_for_training': 'true',
       });
       setState(() {
         successMessage = (data as Map)['message'] ?? 'Report submitted successfully';
@@ -243,6 +245,14 @@ void initState() {
                   borderSide: BorderSide.none,
                 ),
               ),
+            ),
+            CheckboxListTile(
+              contentPadding: EdgeInsets.zero,
+              controlAffinity: ListTileControlAffinity.leading,
+              value: shareForTraining,
+              onChanged: (v) => setState(() => shareForTraining = v ?? false),
+              title: const Text('Allow anonymous use of this message to improve scam detection'),
+              subtitle: const Text('Numbers, codes and emails are removed first. Optional.'),
             ),
             const SizedBox(height: 28),
 

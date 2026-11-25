@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:phishtriage_app/account_check_screen.dart';
+import 'package:phishtriage_app/feedback_card.dart';
 import 'package:phishtriage_app/home_screen.dart';
 import 'package:phishtriage_app/main.dart';
 import 'package:phishtriage_app/message_scanner_screen.dart';
@@ -35,5 +36,15 @@ void main() {
     await tester.tap(find.text('Check account'));
     await tester.pump();
     expect(find.text('Enter the 10-digit account number.'), findsOneWidget);
+  });
+
+  testWidgets('Feedback card offers correct/wrong answers and opt-in sharing', (tester) async {
+    await tester.pumpWidget(const MaterialApp(
+      home: Scaffold(body: FeedbackCard(scanId: 'x', message: 'hello', flagged: true)),
+    ));
+    expect(find.text('Was this result right?'), findsOneWidget);
+    expect(find.text('No, it is safe'), findsOneWidget);
+    final box = tester.widget<CheckboxListTile>(find.byType(CheckboxListTile));
+    expect(box.value, isFalse); // sharing is off unless the user opts in
   });
 }
