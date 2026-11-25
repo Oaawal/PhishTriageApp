@@ -22,7 +22,6 @@ class _MessageScannerScreenState extends State<MessageScannerScreen> {
 
   Map<String, dynamic>? _result;
   bool _isLoading = false;
-  bool _deepCheck = false;
   String? _error;
 
   @override
@@ -58,7 +57,6 @@ class _MessageScannerScreenState extends State<MessageScannerScreen> {
       final data = await ApiClient.post('/analyze', body: {
         'message': text,
         'channel': 'app',
-        'deep': _deepCheck,
       });
       setState(() => _result = Map<String, dynamic>.from(data as Map));
     } on ApiException catch (e) {
@@ -193,7 +191,6 @@ Checked with PhishTriage.''';
     final color = _riskColor();
     final accounts = _indicator('accounts');
     final phones = _indicator('phones');
-    final llm = _result?['llm'] as Map?;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(18),
@@ -215,7 +212,7 @@ Checked with PhishTriage.''';
                   children: [
                     Text('$_risk Risk',
                         style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: color)),
-                    Text('Score ${_result?['score']}/100${llm?['used'] == true ? ' · AI checked' : ''}',
+                    Text('Score ${_result?['score']}/100',
                         style: const TextStyle(color: Colors.grey)),
                   ],
                 ),
@@ -314,14 +311,7 @@ Checked with PhishTriage.''';
                 ),
               ),
             ),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              value: _deepCheck,
-              onChanged: _isLoading ? null : (v) => setState(() => _deepCheck = v),
-              title: const Text('Deep check with AI'),
-              subtitle: const Text('Slower. Useful for unusual messages.'),
-              activeThumbColor: const Color(0xFF008751),
-            ),
+            const SizedBox(height: 16),
             ElevatedButton(
               onPressed: _isLoading ? null : _scan,
               style: ElevatedButton.styleFrom(
