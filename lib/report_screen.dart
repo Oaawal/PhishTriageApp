@@ -3,7 +3,8 @@ import 'api_client.dart';
 
 class ReportScreen extends StatefulWidget {
   final String? prefilledNumber;
-  const ReportScreen({super.key, this.prefilledNumber});
+  final String? prefilledChannel;
+  const ReportScreen({super.key, this.prefilledNumber, this.prefilledChannel});
 
   @override
   State<ReportScreen> createState() => _ReportScreenState();
@@ -18,6 +19,9 @@ void initState() {
   super.initState();
   if (widget.prefilledNumber != null) {
     _numberController.text = widget.prefilledNumber!;
+  }
+  if (widget.prefilledChannel != null && channels.contains(widget.prefilledChannel)) {
+    selectedChannel = widget.prefilledChannel!;
   }
 }
 

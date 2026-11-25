@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:phishtriage_app/lookup_screen.dart';
 import 'package:phishtriage_app/report_screen.dart';
-import 'package:phishtriage_app/alerts_screen.dart';
 import 'package:phishtriage_app/message_scanner_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'account_check_screen.dart';
 import 'config.dart';
 import 'recent_numbers.dart';
+import 'api_client.dart';
+import 'call_protection_screen.dart';
+import 'native_bridge.dart';
+import 'official_directory_screen.dart';
 import 'recovery_screen.dart';
+import 'scam_warnings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -18,11 +22,25 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   List<String> _recentNumbers = [];
+  Map? _topWarning;
 
   @override
   void initState() {
     super.initState();
     _loadRecent();
+    _loadWarning();
+    // Open a message shared to PhishTriage, or a call-warning notification that was tapped.
+    WidgetsBinding.instance.addPostFrameCallback((_) => NativeBridge.consumeLaunchActions());
+  }
+
+  Future<void> _loadWarning() async {
+    try {
+      final data = await ApiClient.get('/scam-alerts') as Map;
+      final alerts = (data['alerts'] as List?) ?? [];
+      if (mounted && alerts.isNotEmpty) setState(() => _topWarning = alerts.first as Map);
+    } on ApiException {
+      // no banner when offline
+    }
   }
 
   Future<void> _loadRecent() async {
@@ -120,6 +138,31 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
 
+              if (_topWarning != null) ...[
+                const SizedBox(height: 16),
+                InkWell(
+                  onTap: () => Navigator.push(
+                      context, MaterialPageRoute(builder: (_) => const ScamWarningsScreen())),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: severityColor(_topWarning!['severity'] as String?).withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Row(children: [
+                      Icon(Icons.campaign, color: severityColor(_topWarning!['severity'] as String?)),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text('Scam alert: ${_topWarning!['title']}',
+                            style: const TextStyle(fontWeight: FontWeight.w600)),
+                      ),
+                      const Icon(Icons.chevron_right),
+                    ]),
+                  ),
+                ),
+              ],
+
               const SizedBox(height: 28),
 
               /// QUICK ACTIONS
@@ -205,18 +248,48 @@ class _HomeScreenState extends State<HomeScreen> {
 
               const SizedBox(height: 14),
 
-              /// ALERTS
+              /// CALL PROTECTION
+              _ActionCard(
+                icon: Icons.phone_locked,
+                title: "Call Protection",
+                subtitle: "Get warned while a reported number is calling",
+                color: const Color(0xFF2A9D8F),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const CallProtectionScreen()),
+                  );
+                },
+              ),
+
+              const SizedBox(height: 14),
+
+              /// OFFICIAL CONTACTS
+              _ActionCard(
+                icon: Icons.verified,
+                title: "Is This Really My Bank?",
+                subtitle: "Official numbers, SMS names and websites",
+                color: const Color(0xFF3A86FF),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const OfficialDirectoryScreen()),
+                  );
+                },
+              ),
+
+              const SizedBox(height: 14),
+
+              /// SCAM WARNINGS + HIGH-RISK NUMBERS
               _ActionCard(
                 icon: Icons.warning_amber_rounded,
-                title: "View Alerts",
-                subtitle: "See high-risk numbers flagged recently",
+                title: "Scam Warnings",
+                subtitle: "Scams going round now and high-risk numbers",
                 color: const Color(0xFFE97C00),
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
-                      builder: (context) => const AlertsScreen(),
-                    ),
+                    MaterialPageRoute(builder: (context) => const ScamWarningsScreen()),
                   );
                 },
               ),
@@ -296,6 +369,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Text("• Verify messages from banks directly"),
                     Text("• Report suspicious numbers immediately"),
                     Text("• Before paying a vendor, check the account here first"),
+                    Text("• Tip: share any suspicious message to PhishTriage to check it"),
                   ],
                 ),
               ),

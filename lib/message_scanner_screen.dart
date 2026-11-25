@@ -12,7 +12,8 @@ import 'recovery_screen.dart';
 
 class MessageScannerScreen extends StatefulWidget {
   final String? prefilledMessage;
-  const MessageScannerScreen({super.key, this.prefilledMessage});
+  final bool autoScan; // scan immediately (used when a message is shared to the app)
+  const MessageScannerScreen({super.key, this.prefilledMessage, this.autoScan = false});
 
   @override
   State<MessageScannerScreen> createState() => _MessageScannerScreenState();
@@ -30,6 +31,7 @@ class _MessageScannerScreenState extends State<MessageScannerScreen> {
     super.initState();
     if (widget.prefilledMessage != null) {
       _messageController.text = widget.prefilledMessage!;
+      if (widget.autoScan) WidgetsBinding.instance.addPostFrameCallback((_) => _scan());
     }
   }
 

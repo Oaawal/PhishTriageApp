@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'api_client.dart';
+import 'blocklist_service.dart';
 import 'dispute_screen.dart';
 import 'report_screen.dart';
 import 'recent_numbers.dart';
@@ -51,8 +52,26 @@ class _LookupScreenState extends State<LookupScreen> {
       });
       await RecentNumbers.addNumber(number);
     } on ApiException catch (e) {
+      // No connection: fall back to the offline list downloaded for call protection.
+      final offline = await BlocklistService.lookupOffline(number);
+      final official = await BlocklistService.officialOffline(number);
       setState(() {
-        errorMessage = e.message;
+        if (offline != null || official != null) {
+          result = {
+            'found': offline != null,
+            'number': BlocklistService.normalize(number) ?? number,
+            'risk_level': offline?['r'] ?? 'Low',
+            'confidence': '-',
+            'report_count_total': offline?['c'] ?? 0,
+            'report_count_7d': '-',
+            'trend': 'stable',
+            'current_label': offline?['l'] ?? 'Unknown',
+            'official': official != null ? [{'org_name': official}] : [],
+            'status_note': 'Offline result from your saved list. Connect to the internet for the latest reports.',
+          };
+        } else {
+          errorMessage = e.message;
+        }
       });
     } finally {
       setState(() {
@@ -72,8 +91,37 @@ class _LookupScreenState extends State<LookupScreen> {
     }
   }
 
+  Widget _officialBanner() {
+    final official = (result?['official'] as List?) ?? const [];
+    if (official.isEmpty) return const SizedBox.shrink();
+    final orgs = official.map((o) => (o as Map)['org_name']).toSet().join(', ');
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFF008751).withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(children: [
+        const Icon(Icons.verified, color: Color(0xFF008751)),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            'Official number of $orgs. Callers can fake this number, so never share your OTP, PIN or password.',
+            style: const TextStyle(height: 1.4),
+          ),
+        ),
+      ]),
+    );
+  }
+
   Widget buildResultCard() {
     if (result == null) return const SizedBox.shrink();
+    return Column(children: [_officialBanner(), _buildResultCardInner()]);
+  }
+
+  Widget _buildResultCardInner() {
 
     if (result!['found'] != true) {
       return Container(
